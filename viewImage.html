@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Image</title>
+    <style>
+        body {
+            text-align: center;
+            margin: 20px;
+        }
+        img {
+            width: 300px; /* Adjust width as needed */
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>View Image</h1>
+    <div id="imageContainer"></div>
+    
+    <script>
+        // Function to get URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Function to fetch and display the image
+        async function fetchImage() {
+            const id = getUrlParameter('id');
+            if (id) {
+                const response = await fetch(`https://photobooth-sss-default-rtdb.firebaseio.com/items/${id}.json`);
+                const data = await response.json();
+                if (data && data.image_url) {
+                    const imageContainer = document.getElementById('imageContainer');
+                    imageContainer.innerHTML = `<img src="${data.image_url}" alt="Fetched Image">`;
+                } else {
+                    alert("Image not found.");
+                }
+            } else {
+                alert("No ID provided.");
+            }
+        }
+
+        // Call the fetchImage function on page load
+        fetchImage();
+    </script>
+</body>
+</html>
