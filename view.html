@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basic Header Example</title>
+    <title>View Images</title>
     <style>
-        body
-	{
-	margin: 0;
-	padding: 0;
-	}
+        body {
+            margin: 0;
+            padding: 0;
+        }
         header {
             display: flex;
             align-items: center;
@@ -22,20 +21,113 @@
             text-decoration: none;
             color: #333;
         }
+        #itemGrid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px; /* Space between items */
+            padding: 20px;
+        }
+        .item-card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            width: 150px; /* Adjust card width as needed */
+            text-align: center;
+        }
+        .item-card img {
+            width: 100%; /* Responsive image */
+            height: auto;
+        }
+        button {
+            margin-top: 5px;
+        }
+        .qr-code {
+            display: none; /* Initially hide QR code */
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <header>
         <nav>
             <a href="index.html">Home</a>
-	    <a href="picture.html">Picture</a>
+            <a href="picture.html">Picture</a>
             <a href="view.html">View</a>
         </nav>
         <img src="your-image-source.jpg" alt="Description of Image" width="50" height="50">
     </header>
 
-    <section id="view">
-        <!-- Content for the View section goes here -->
-    </section>
+    <h1>View Images</h1>
+    <div id="itemGrid"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWhzMHSSNyBJILjy0ELy2WCdiwjc84SJ8",
+            authDomain: "photobooth-sss.firebaseapp.com",
+            databaseURL: "https://photobooth-sss-default-rtdb.firebaseio.com/",
+            projectId: "photobooth-sss",
+            storageBucket: "photobooth-sss.appspot.com",
+            messagingSenderId: "893599274396",
+            appId: "1:893599274396:web:a1454f34acbd380890a459",
+            measurementId: "G-3B9BXBCZPG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const itemGrid = document.getElementById('itemGrid');
+
+        // Display images from the database
+	onValue(ref(database, 'items'), (snapshot) => {
+    itemGrid.innerHTML = '';
+
+    snapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val();
+        const itemKey = childSnapshot.key;
+
+        const itemCard = document.createElement('div');
+        itemCard.className = 'item-card';
+
+        const img = document.createElement('img');
+        img.src = data.image_url;
+        img.alt = "Item Image";
+        itemCard.appendChild(img);
+
+        // Fetch the QR code URL from the database
+        onValue(ref(database, 'qr/' + itemKey), (qrSnapshot) => {
+            if (qrSnapshot.exists()) {
+                const qrData = qrSnapshot.val();
+                const qrImage = document.createElement('img');
+                qrImage.src = qrData.qr_url; // Use the stored QR code URL
+                qrImage.alt = "QR Code";
+                itemCard.appendChild(qrImage);
+            }
+        });
+
+        // Create delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.innerText = "Delete";
+        deleteButton.onclick = async () => {
+            await deleteImage(itemKey);
+        };
+        itemCard.appendChild(deleteButton);
+
+        // Create download button
+        const downloadButton = document.createElement('button');
+        downloadButton.innerText = "Download";
+        downloadButton.onclick = () => {
+            downloadImage(itemKey, itemCard);
+        };
+        itemCard.appendChild(downloadButton);
+
+        itemGrid.appendChild(itemCard);
+    });
+});
+
+
+      
+    </script>
 </body>
 </html>
